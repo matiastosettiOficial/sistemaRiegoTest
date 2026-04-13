@@ -2,94 +2,110 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Sistema de Riego</title>
+<title>Panel de Riego</title>
 
 <style>
 body {
   font-family: 'Segoe UI', sans-serif;
-  background: #f4f7f5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  background: #eef5f1;
   margin: 0;
 }
 
-.container {
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  width: 360px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 10px;
-  width: 160px;
-}
-
-.subtitulo {
+/* HEADER */
+.header {
+  background: #1b5e20;
+  padding: 15px;
   text-align: center;
-  color: #1b5e20;
+}
+
+.header img {
+  width: 140px;
+}
+
+/* CONTENEDOR */
+.container {
+  padding: 20px;
+  max-width: 400px;
+  margin: auto;
+}
+
+/* CARD */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
   margin-bottom: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
 }
 
-form {
-  display: flex;
-  flex-direction: column;
+/* TITULOS */
+h2 {
+  margin-top: 0;
+  color: #2e7d32;
 }
 
-.grupo {
-  margin-bottom: 12px;
-}
-
-label {
-  font-size: 14px;
-}
-
+/* INPUTS */
 input[type="time"] {
-  padding: 6px;
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
   border-radius: 6px;
   border: 1px solid #ccc;
 }
 
-button {
-  margin-top: 10px;
-  padding: 10px;
+/* CHECKBOX GRID */
+.dias {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.dias label {
+  font-size: 14px;
+}
+
+/* BOTÓN PRINCIPAL */
+.btn {
+  width: 100%;
+  padding: 12px;
   background: #2e7d32;
   color: white;
   border: none;
   border-radius: 8px;
+  margin-top: 10px;
+  font-weight: bold;
   cursor: pointer;
-  transition: 0.2s;
 }
 
-button:hover {
+.btn:hover {
   background: #1b5e20;
 }
 
+/* MENSAJE */
 #mensaje {
-  margin-top: 10px;
-  font-weight: bold;
   text-align: center;
+  font-weight: bold;
+  margin: 10px 0;
 }
 
-.exito {
-  color: green;
-}
+.exito { color: green; }
+.error { color: red; }
 
-.error {
-  color: red;
-}
-
-li {
+/* TARJETAS DE RIEGO */
+.riego {
   background: #f1f8e9;
-  border-left: 4px solid #2e7d32;
-  margin: 6px 0;
-  padding: 6px;
-  border-radius: 6px;
-  font-size: 14px;
+  border-left: 5px solid #2e7d32;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.riego h3 {
+  margin: 0;
+}
+
+.estado {
+  font-size: 12px;
+  color: #666;
 }
 </style>
 
@@ -97,41 +113,44 @@ li {
 
 <body>
 
+<!-- HEADER -->
+<div class="header">
+  <img src="IDENTIDAD HUERTAS FAMILIARES FONDO BLANCO.jpg">
+</div>
+
 <div class="container">
 
-<img src="IDENTIDAD HUERTAS FAMILIARES FONDO BLANCO.jpg" class="logo">
+<!-- CONFIGURACIÓN -->
+<div class="card">
+  <h2>⚙️ Nueva configuración</h2>
 
-<h2 class="subtitulo">Sistema de Riego</h2>
+  <form id="formulario">
 
-<form id="formulario">
+    <div class="dias">
+      <label><input type="checkbox" value="Lunes"> Lunes</label>
+      <label><input type="checkbox" value="Martes"> Martes</label>
+      <label><input type="checkbox" value="Miércoles"> Miércoles</label>
+      <label><input type="checkbox" value="Jueves"> Jueves</label>
+      <label><input type="checkbox" value="Viernes"> Viernes</label>
+      <label><input type="checkbox" value="Sábado"> Sábado</label>
+      <label><input type="checkbox" value="Domingo"> Domingo</label>
+    </div>
 
-<div class="grupo">
-<p>Días de riego:</p>
-<label><input type="checkbox" value="Lunes"> Lunes</label><br>
-<label><input type="checkbox" value="Martes"> Martes</label><br>
-<label><input type="checkbox" value="Miércoles"> Miércoles</label><br>
-<label><input type="checkbox" value="Jueves"> Jueves</label><br>
-<label><input type="checkbox" value="Viernes"> Viernes</label><br>
-<label><input type="checkbox" value="Sábado"> Sábado</label><br>
-<label><input type="checkbox" value="Domingo"> Domingo</label>
+    <input type="time" id="inicio" placeholder="Hora inicio">
+    <input type="time" id="fin" placeholder="Hora fin">
+
+    <button class="btn" type="submit">📡 Enviar al dispositivo</button>
+
+  </form>
+
+  <p id="mensaje"></p>
 </div>
 
-<div class="grupo">
-<p>Hora inicio:</p>
-<input type="time" id="inicio">
+<!-- LISTA DE RIEGOS -->
+<div class="card">
+  <h2>🌱 Programaciones activas</h2>
+  <div id="lista"></div>
 </div>
-
-<div class="grupo">
-<p>Hora fin:</p>
-<input type="time" id="fin">
-</div>
-
-<button type="submit">Enviar configuración</button>
-
-</form>
-
-<p id="mensaje"></p>
-<ul id="lista"></ul>
 
 </div>
 
@@ -164,24 +183,24 @@ formulario.addEventListener("submit", function(e) {
   }
 
   if (fin.value <= inicio.value) {
-    mensaje.innerText = "⚠️ La hora de fin debe ser mayor que la de inicio";
+    mensaje.innerText = "⚠️ Hora fin debe ser mayor";
     mensaje.classList.add("error");
     return;
   }
 
-  mensaje.innerText = "✅ Configuración enviada al dispositivo";
+  mensaje.innerText = "✅ Enviado correctamente al sistema";
   mensaje.classList.add("exito");
 
   lista.innerHTML += `
-    <li>
-      <strong>Riego ${contador}</strong><br>
-      ${dias.join(", ")}<br>
-      ⏱ ${inicio.value} - ${fin.value}
-    </li>
+    <div class="riego">
+      <h3>Riego ${contador}</h3>
+      <p>${dias.join(", ")}</p>
+      <p>⏱ ${inicio.value} - ${fin.value}</p>
+      <p class="estado">Estado: Programado</p>
+    </div>
   `;
 
   contador++;
-
   formulario.reset();
 });
 
