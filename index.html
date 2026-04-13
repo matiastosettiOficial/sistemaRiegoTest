@@ -35,12 +35,6 @@ body {
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
 }
 
-h2 {
-  margin-top: 0;
-  color: #2e7d32;
-}
-
-/* BOTÓN ON/OFF */
 .toggle {
   width: 100%;
   padding: 15px;
@@ -51,17 +45,9 @@ h2 {
   font-weight: bold;
 }
 
-.on {
-  background: #00c853;
-  color: white;
-}
+.on { background: #00c853; color: white; }
+.off { background: #b0bec5; color: white; }
 
-.off {
-  background: #b0bec5;
-  color: white;
-}
-
-/* FORM */
 input[type="time"] {
   width: 100%;
   padding: 8px;
@@ -83,18 +69,8 @@ input[type="time"] {
   border: none;
   border-radius: 8px;
   margin-top: 10px;
-  cursor: pointer;
 }
 
-#mensaje {
-  text-align: center;
-  font-weight: bold;
-}
-
-.exito { color: green; }
-.error { color: red; }
-
-/* TARJETAS */
 .riego {
   background: #f1f8e9;
   border-left: 5px solid #2e7d32;
@@ -113,10 +89,8 @@ input[type="time"] {
   border: none;
   padding: 5px;
   border-radius: 5px;
-  cursor: pointer;
 }
 </style>
-
 </head>
 
 <body>
@@ -129,14 +103,13 @@ input[type="time"] {
 
 <div class="card">
   <h2>🎛️ Control</h2>
-  <button id="toggleBtn" class="toggle">OFF</button>
+  <button id="toggleBtn" class="toggle off">OFF</button>
 </div>
 
 <div class="card">
   <h2>⚙️ Nueva configuración</h2>
 
   <form id="formulario">
-
     <div class="dias">
       <label><input type="checkbox" value="Lunes"> Lunes</label>
       <label><input type="checkbox" value="Martes"> Martes</label>
@@ -151,7 +124,6 @@ input[type="time"] {
     <input type="time" id="fin">
 
     <button class="btn" type="submit">📡 Enviar</button>
-
   </form>
 
   <p id="mensaje"></p>
@@ -166,8 +138,8 @@ input[type="time"] {
 
 <script>
 
-// ====== ESTADOS ======
-let estadoManual = localStorage.getItem("estadoManual") || "auto";
+// ====== ESTADO REAL ======
+let sistemaEncendido = JSON.parse(localStorage.getItem("estadoSistema")) || false;
 let datos = JSON.parse(localStorage.getItem("riegos")) || [];
 
 const toggleBtn = document.getElementById("toggleBtn");
@@ -177,28 +149,30 @@ function obtenerDiaActual() {
   return ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"][new Date().getDay()];
 }
 
-function hayRiegoActivo() {
+// ====== SCHEDULER ======
+function evaluarProgramacion() {
   const ahora = new Date();
   const hora = ahora.toTimeString().slice(0,5);
   const dia = obtenerDiaActual();
 
-  return datos.some(r =>
-    r.dias.includes(dia) &&
-    hora >= r.inicio &&
-    hora <= r.fin
-  );
-}
+  datos.forEach(r => {
+    // INICIO → fuerza ON
+    if (r.dias.includes(dia) && hora === r.inicio) {
+      sistemaEncendido = true;
+    }
 
-// ====== ESTADO FINAL ======
-function sistemaActivo() {
-  if (estadoManual === "on") return true;
-  if (estadoManual === "off") return false;
-  return hayRiegoActivo();
+    // FIN → fuerza OFF
+    if (r.dias.includes(dia) && hora === r.fin) {
+      sistemaEncendido = false;
+    }
+  });
+
+  guardarEstado();
 }
 
 // ====== BOTÓN ======
 function actualizarBoton() {
-  if (sistemaActivo()) {
+  if (sistemaEncendido) {
     toggleBtn.innerText = "ON";
     toggleBtn.className = "toggle on";
   } else {
@@ -208,15 +182,14 @@ function actualizarBoton() {
 }
 
 toggleBtn.addEventListener("click", () => {
-  if (estadoManual === "auto") estadoManual = "on";
-  else if (estadoManual === "on") estadoManual = "off";
-  else estadoManual = "auto";
-
-  localStorage.setItem("estadoManual", estadoManual);
+  sistemaEncendido = !sistemaEncendido;
+  guardarEstado();
   actualizarBoton();
 });
 
-actualizarBoton();
+function guardarEstado() {
+  localStorage.setItem("estadoSistema", JSON.stringify(sistemaEncendido));
+}
 
 // ====== FORM ======
 const formulario = document.getElementById("formulario");
@@ -226,7 +199,7 @@ const checks = document.querySelectorAll("input[type=checkbox]");
 const mensaje = document.getElementById("mensaje");
 const lista = document.getElementById("lista");
 
-function guardar() {
+function guardarDatos() {
   localStorage.setItem("riegos", JSON.stringify(datos));
 }
 
@@ -234,10 +207,8 @@ function render() {
   lista.innerHTML = "";
 
   datos.forEach((r, i) => {
-    const activo = sistemaActivo();
-
     lista.innerHTML += `
-      <div class="riego ${activo ? "activo" : ""}">
+      <div class="riego">
         <strong>Riego ${i+1}</strong>
         <p>${r.dias.join(", ")}</p>
         <p>⏱ ${r.inicio} - ${r.fin}</p>
@@ -245,13 +216,11 @@ function render() {
       </div>
     `;
   });
-
-  actualizarBoton();
 }
 
-function eliminar(index) {
-  datos.splice(index, 1);
-  guardar();
+function eliminar(i) {
+  datos.splice(i, 1);
+  guardarDatos();
   render();
 }
 
@@ -261,38 +230,33 @@ formulario.addEventListener("submit", function(e) {
   let dias = [];
   checks.forEach(c => { if (c.checked) dias.push(c.value); });
 
-  mensaje.className = "";
-
   if (dias.length === 0 || inicio.value === "" || fin.value === "") {
     mensaje.innerText = "⚠️ Completar datos";
-    mensaje.classList.add("error");
     return;
   }
 
   if (fin.value <= inicio.value) {
-    mensaje.innerText = "⚠️ Hora fin inválida";
-    mensaje.classList.add("error");
+    mensaje.innerText = "⚠️ Hora inválida";
     return;
   }
 
   datos.push({ dias, inicio: inicio.value, fin: fin.value });
 
-  guardar();
+  guardarDatos();
   render();
 
   mensaje.innerText = "✅ Guardado";
-  mensaje.classList.add("exito");
-
   formulario.reset();
 });
 
-render();
-
-// actualización automática
+// ====== LOOP ======
 setInterval(() => {
+  evaluarProgramacion();
   actualizarBoton();
-  render();
-}, 30000);
+}, 1000); // chequeo cada segundo
+
+render();
+actualizarBoton();
 
 </script>
 
