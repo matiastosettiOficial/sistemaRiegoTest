@@ -43,6 +43,27 @@ h2 {
   color: #2e7d32;
 }
 
+/* BOTÓN ON OFF */
+.toggle {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.on {
+  background: #00c853;
+  color: white;
+}
+
+.off {
+  background: #b0bec5;
+  color: white;
+}
+
 /* INPUTS */
 input[type="time"] {
   width: 100%;
@@ -52,7 +73,6 @@ input[type="time"] {
   border: 1px solid #ccc;
 }
 
-/* GRID DIAS */
 .dias {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -69,10 +89,6 @@ input[type="time"] {
   margin-top: 10px;
   font-weight: bold;
   cursor: pointer;
-}
-
-.btn:hover {
-  background: #1b5e20;
 }
 
 /* MENSAJE */
@@ -96,11 +112,6 @@ input[type="time"] {
 
 .activo {
   border-left: 5px solid #00c853;
-  background: #e8f5e9;
-}
-
-.inactivo {
-  opacity: 0.7;
 }
 
 .estado {
@@ -108,7 +119,7 @@ input[type="time"] {
   font-weight: bold;
 }
 
-/* BOTÓN BORRAR */
+/* BORRAR */
 .delete {
   margin-top: 5px;
   background: #c62828;
@@ -130,6 +141,13 @@ input[type="time"] {
 
 <div class="container">
 
+<!-- CONTROL MANUAL -->
+<div class="card">
+  <h2>🎛️ Control Manual</h2>
+  <button id="toggleBtn" class="toggle">Cargando...</button>
+</div>
+
+<!-- FORMULARIO -->
 <div class="card">
   <h2>⚙️ Nueva configuración</h2>
 
@@ -155,6 +173,7 @@ input[type="time"] {
   <p id="mensaje"></p>
 </div>
 
+<!-- LISTA -->
 <div class="card">
   <h2>🌱 Programaciones</h2>
   <div id="lista"></div>
@@ -164,6 +183,29 @@ input[type="time"] {
 
 <script>
 
+// ====== ESTADO DISPOSITIVO ======
+let estado = localStorage.getItem("estado") || "off";
+const toggleBtn = document.getElementById("toggleBtn");
+
+function actualizarBoton() {
+  if (estado === "on") {
+    toggleBtn.innerText = "🟢 Sistema ENCENDIDO (Click para apagar)";
+    toggleBtn.className = "toggle on";
+  } else {
+    toggleBtn.innerText = "⚪ Sistema APAGADO (Click para encender)";
+    toggleBtn.className = "toggle off";
+  }
+}
+
+toggleBtn.addEventListener("click", () => {
+  estado = (estado === "on") ? "off" : "on";
+  localStorage.setItem("estado", estado);
+  actualizarBoton();
+});
+
+actualizarBoton();
+
+// ====== RIEGOS ======
 let datos = JSON.parse(localStorage.getItem("riegos")) || [];
 
 const formulario = document.getElementById("formulario");
@@ -182,6 +224,8 @@ function obtenerDiaActual() {
 }
 
 function estaActivo(riego) {
+  if (estado === "off") return false;
+
   const ahora = new Date();
   const hora = ahora.toTimeString().slice(0,5);
   const dia = obtenerDiaActual();
@@ -197,7 +241,7 @@ function render() {
     const activo = estaActivo(r);
 
     lista.innerHTML += `
-      <div class="riego ${activo ? "activo" : "inactivo"}">
+      <div class="riego ${activo ? "activo" : ""}">
         <strong>Riego ${i+1}</strong>
         <p>${r.dias.join(", ")}</p>
         <p>⏱ ${r.inicio} - ${r.fin}</p>
