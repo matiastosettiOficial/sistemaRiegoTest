@@ -38,7 +38,6 @@ body {
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
 }
 
-/* TITULOS */
 h2 {
   margin-top: 0;
   color: #2e7d32;
@@ -53,17 +52,13 @@ input[type="time"] {
   border: 1px solid #ccc;
 }
 
-/* CHECKBOX GRID */
+/* GRID DIAS */
 .dias {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
 }
 
-.dias label {
-  font-size: 14px;
-}
-
-/* BOTÓN PRINCIPAL */
+/* BOTÓN */
 .btn {
   width: 100%;
   padding: 12px;
@@ -90,7 +85,7 @@ input[type="time"] {
 .exito { color: green; }
 .error { color: red; }
 
-/* TARJETAS DE RIEGO */
+/* TARJETAS */
 .riego {
   background: #f1f8e9;
   border-left: 5px solid #2e7d32;
@@ -99,13 +94,29 @@ input[type="time"] {
   margin-bottom: 10px;
 }
 
-.riego h3 {
-  margin: 0;
+.activo {
+  border-left: 5px solid #00c853;
+  background: #e8f5e9;
+}
+
+.inactivo {
+  opacity: 0.7;
 }
 
 .estado {
-  font-size: 12px;
-  color: #666;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+/* BOTÓN BORRAR */
+.delete {
+  margin-top: 5px;
+  background: #c62828;
+  color: white;
+  border: none;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 </style>
 
@@ -113,14 +124,12 @@ input[type="time"] {
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <img src="IDENTIDAD HUERTAS FAMILIARES FONDO BLANCO.jpg">
 </div>
 
 <div class="container">
 
-<!-- CONFIGURACIÓN -->
 <div class="card">
   <h2>⚙️ Nueva configuración</h2>
 
@@ -136,8 +145,8 @@ input[type="time"] {
       <label><input type="checkbox" value="Domingo"> Domingo</label>
     </div>
 
-    <input type="time" id="inicio" placeholder="Hora inicio">
-    <input type="time" id="fin" placeholder="Hora fin">
+    <input type="time" id="inicio">
+    <input type="time" id="fin">
 
     <button class="btn" type="submit">📡 Enviar al dispositivo</button>
 
@@ -146,15 +155,16 @@ input[type="time"] {
   <p id="mensaje"></p>
 </div>
 
-<!-- LISTA DE RIEGOS -->
 <div class="card">
-  <h2>🌱 Programaciones activas</h2>
+  <h2>🌱 Programaciones</h2>
   <div id="lista"></div>
 </div>
 
 </div>
 
 <script>
+
+let datos = JSON.parse(localStorage.getItem("riegos")) || [];
 
 const formulario = document.getElementById("formulario");
 const inicio = document.getElementById("inicio");
@@ -163,16 +173,52 @@ const checks = document.querySelectorAll("input[type=checkbox]");
 const mensaje = document.getElementById("mensaje");
 const lista = document.getElementById("lista");
 
-let contador = 1;
+function guardar() {
+  localStorage.setItem("riegos", JSON.stringify(datos));
+}
+
+function obtenerDiaActual() {
+  return ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"][new Date().getDay()];
+}
+
+function estaActivo(riego) {
+  const ahora = new Date();
+  const hora = ahora.toTimeString().slice(0,5);
+  const dia = obtenerDiaActual();
+
+  return riego.dias.includes(dia) && hora >= riego.inicio && hora <= riego.fin;
+}
+
+function render() {
+  lista.innerHTML = "";
+
+  datos.forEach((r, i) => {
+
+    const activo = estaActivo(r);
+
+    lista.innerHTML += `
+      <div class="riego ${activo ? "activo" : "inactivo"}">
+        <strong>Riego ${i+1}</strong>
+        <p>${r.dias.join(", ")}</p>
+        <p>⏱ ${r.inicio} - ${r.fin}</p>
+        <p class="estado">${activo ? "🟢 Activo ahora" : "⚪ Programado"}</p>
+        <button class="delete" onclick="eliminar(${i})">Eliminar</button>
+      </div>
+    `;
+  });
+}
+
+function eliminar(index) {
+  datos.splice(index, 1);
+  guardar();
+  render();
+}
 
 formulario.addEventListener("submit", function(e) {
   e.preventDefault();
 
   let dias = [];
-
-  checks.forEach(c => {
-    if (c.checked) dias.push(c.value);
-  });
+  checks.forEach(c => { if (c.checked) dias.push(c.value); });
 
   mensaje.className = "";
 
@@ -188,21 +234,22 @@ formulario.addEventListener("submit", function(e) {
     return;
   }
 
-  mensaje.innerText = "✅ Enviado correctamente al sistema";
+  datos.push({
+    dias: dias,
+    inicio: inicio.value,
+    fin: fin.value
+  });
+
+  guardar();
+  render();
+
+  mensaje.innerText = "✅ Configuración guardada";
   mensaje.classList.add("exito");
 
-  lista.innerHTML += `
-    <div class="riego">
-      <h3>Riego ${contador}</h3>
-      <p>${dias.join(", ")}</p>
-      <p>⏱ ${inicio.value} - ${fin.value}</p>
-      <p class="estado">Estado: Programado</p>
-    </div>
-  `;
-
-  contador++;
   formulario.reset();
 });
+
+render();
 
 </script>
 
