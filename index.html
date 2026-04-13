@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sistema de Riego</title>
+
+<style>
+body {
+  font-family: Arial;
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.container {
+  width: 320px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin: 3px 0;
+}
+
+input, button {
+  margin: 8px 0;
+  padding: 6px;
+}
+
+button {
+  cursor: pointer;
+}
+
+#mensaje {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+li {
+  background: lightgray;
+  margin: 5px 0;
+  padding: 5px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Configuración de Riego</h1>
+
+<form id="formulario">
+
+  <p>Días de riego:</p>
+  <label><input type="checkbox" value="Lunes"> Lunes</label>
+  <label><input type="checkbox" value="Martes"> Martes</label>
+  <label><input type="checkbox" value="Miércoles"> Miércoles</label>
+  <label><input type="checkbox" value="Jueves"> Jueves</label>
+  <label><input type="checkbox" value="Viernes"> Viernes</label>
+  <label><input type="checkbox" value="Sábado"> Sábado</label>
+  <label><input type="checkbox" value="Domingo"> Domingo</label>
+
+  <p>Hora inicio:</p>
+  <input type="time" id="inicio">
+
+  <p>Hora fin:</p>
+  <input type="time" id="fin">
+
+  <button type="submit">Enviar configuración</button>
+
+</form>
+
+<p id="mensaje"></p>
+<ul id="lista"></ul>
+
+</div>
+
+<script>
+
+const formulario = document.getElementById("formulario");
+const inicio = document.getElementById("inicio");
+const fin = document.getElementById("fin");
+const checks = document.querySelectorAll("input[type=checkbox]");
+const mensaje = document.getElementById("mensaje");
+const lista = document.getElementById("lista");
+
+let contador = 1;
+
+formulario.addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  let dias = [];
+
+  checks.forEach(c => {
+    if (c.checked) dias.push(c.value);
+  });
+
+  // VALIDACIONES
+  if (dias.length === 0 || inicio.value === "" || fin.value === "") {
+    mensaje.innerText = "⚠️ Completar todos los datos";
+    return;
+  }
+
+  // VALIDACIÓN PEDIDA: fin > inicio
+  if (fin.value <= inicio.value) {
+    mensaje.innerText = "⚠️ La hora de fin debe ser mayor que la de inicio";
+    return;
+  }
+
+  // MENSAJE DE ÉXITO
+  mensaje.innerText = "✅ Configuración enviada al dispositivo";
+
+  // AGREGAR A LISTA
+  lista.innerHTML += `
+    <li>
+      Riego ${contador}: ${dias.join(", ")} | ${inicio.value} - ${fin.value}
+    </li>
+  `;
+
+  contador++;
+
+  // LIMPIAR FORM
+  formulario.reset();
+});
+
+</script>
+
+</body>
+</html>
