@@ -6,14 +6,26 @@
 
 <style>
 body {
-  font-family: Arial;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
   display: flex;
   justify-content: center;
-  margin-top: 30px;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
 }
 
 .container {
-  width: 320px;
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 340px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #2e7d32;
 }
 
 form {
@@ -21,28 +33,56 @@ form {
   flex-direction: column;
 }
 
-label {
-  margin: 3px 0;
+.grupo {
+  margin-bottom: 12px;
 }
 
-input, button {
-  margin: 8px 0;
+label {
+  font-size: 14px;
+}
+
+input[type="time"] {
   padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
 button {
+  margin-top: 10px;
+  padding: 10px;
+  background: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #1b5e20;
 }
 
 #mensaje {
   margin-top: 10px;
   font-weight: bold;
+  text-align: center;
+}
+
+.exito {
+  color: green;
+}
+
+.error {
+  color: red;
 }
 
 li {
-  background: lightgray;
-  margin: 5px 0;
-  padding: 5px;
+  background: #f1f8e9;
+  border-left: 4px solid #2e7d32;
+  margin: 6px 0;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 14px;
 }
 </style>
 
@@ -52,26 +92,32 @@ li {
 
 <div class="container">
 
-<h1>Configuración de Riego</h1>
+<h1>💧 Sistema de Riego</h1>
 
 <form id="formulario">
 
-  <p>Días de riego:</p>
-  <label><input type="checkbox" value="Lunes"> Lunes</label>
-  <label><input type="checkbox" value="Martes"> Martes</label>
-  <label><input type="checkbox" value="Miércoles"> Miércoles</label>
-  <label><input type="checkbox" value="Jueves"> Jueves</label>
-  <label><input type="checkbox" value="Viernes"> Viernes</label>
-  <label><input type="checkbox" value="Sábado"> Sábado</label>
-  <label><input type="checkbox" value="Domingo"> Domingo</label>
+<div class="grupo">
+<p>Días de riego:</p>
+<label><input type="checkbox" value="Lunes"> Lunes</label><br>
+<label><input type="checkbox" value="Martes"> Martes</label><br>
+<label><input type="checkbox" value="Miércoles"> Miércoles</label><br>
+<label><input type="checkbox" value="Jueves"> Jueves</label><br>
+<label><input type="checkbox" value="Viernes"> Viernes</label><br>
+<label><input type="checkbox" value="Sábado"> Sábado</label><br>
+<label><input type="checkbox" value="Domingo"> Domingo</label>
+</div>
 
-  <p>Hora inicio:</p>
-  <input type="time" id="inicio">
+<div class="grupo">
+<p>Hora inicio:</p>
+<input type="time" id="inicio">
+</div>
 
-  <p>Hora fin:</p>
-  <input type="time" id="fin">
+<div class="grupo">
+<p>Hora fin:</p>
+<input type="time" id="fin">
+</div>
 
-  <button type="submit">Enviar configuración</button>
+<button type="submit">Enviar configuración</button>
 
 </form>
 
@@ -100,31 +146,33 @@ formulario.addEventListener("submit", function(e) {
     if (c.checked) dias.push(c.value);
   });
 
-  // VALIDACIONES
+  mensaje.className = "";
+
   if (dias.length === 0 || inicio.value === "" || fin.value === "") {
     mensaje.innerText = "⚠️ Completar todos los datos";
+    mensaje.classList.add("error");
     return;
   }
 
-  // VALIDACIÓN PEDIDA: fin > inicio
   if (fin.value <= inicio.value) {
     mensaje.innerText = "⚠️ La hora de fin debe ser mayor que la de inicio";
+    mensaje.classList.add("error");
     return;
   }
 
-  // MENSAJE DE ÉXITO
   mensaje.innerText = "✅ Configuración enviada al dispositivo";
+  mensaje.classList.add("exito");
 
-  // AGREGAR A LISTA
   lista.innerHTML += `
     <li>
-      Riego ${contador}: ${dias.join(", ")} | ${inicio.value} - ${fin.value}
+      <strong>Riego ${contador}</strong><br>
+      ${dias.join(", ")}<br>
+      ⏱ ${inicio.value} - ${fin.value}
     </li>
   `;
 
   contador++;
 
-  // LIMPIAR FORM
   formulario.reset();
 });
 
